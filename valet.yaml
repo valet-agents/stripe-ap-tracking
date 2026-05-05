@@ -1,0 +1,80 @@
+name: stripe-ap-tracking
+display_name: Stripe AP Tracking
+description: >-
+  Vendor invoices, due dates, and payment confirmations all post to
+  one Slack channel — past-due amounts, weird totals, and duplicates
+  get called out. @mention it any time for ad-hoc invoice questions.
+category: procurement
+
+story:
+  hero: "Stop chasing 'is this paid?' across email."
+  subheadline: >-
+    Vendor invoices, due dates, and payment confirmations all post
+    to one channel — past-due amounts, weird totals, and duplicates
+    get called out.
+  steps:
+    - role: trigger
+      title: "8am hits."
+      body: >-
+        The cron fires Monday through Friday at 8am Pacific. The
+        AP picture lands before anyone has to ask.
+    - role: action
+      title: "It reads your Stripe invoices."
+      body: >-
+        Pulls past-due invoices, yesterday's new invoices, and
+        scans for duplicates and outsized amounts — read-only,
+        restricted-key safe.
+      catalog: stripe-mcp
+    - role: outcome
+      title: "Past-due, new, anomalies — one digest in Slack."
+      body: >-
+        Tight mrkdwn summary in every channel the bot is invited
+        to. Dollar amounts exact, duplicates flagged, no past-due
+        gets to age quietly.
+      catalog: slack
+
+connectors:
+  - catalog: stripe-mcp
+    description: >-
+      The Stripe MCP server. The agent reads invoices and customers
+      to compose the daily AP digest, surface past-due invoices,
+      detect duplicates, and answer ad-hoc invoice questions in
+      Slack. Voiding, cancelling, or marking an invoice paid only
+      happens when a Slack user explicitly confirms it in-thread.
+    ui:
+      headline: "Connect Stripe with a restricted, read-only key."
+      blurb: >-
+        Paste a Stripe Restricted Key (`rk_live_...`) with read
+        scopes on Invoices and Customers. A live secret key
+        (`sk_live_...`) also works, but a restricted read-only key
+        is strongly recommended — it's the safest way to give the
+        agent the access it needs and nothing more.
+      done_note: "Stripe connected"
+    slot_descriptions:
+      STRIPE_SECRET_KEY: >-
+        Stripe API key — `sk_live_...` or `rk_live_...`. STRONGLY
+        recommend a Restricted Key with read-only scopes on
+        Invoices and Customers (add Charges read if you also want
+        payment confirmations). Generate at
+        https://dashboard.stripe.com/apikeys.
+
+channels:
+  - catalog: slack
+    description: >-
+      The agent gets its own Slack bot. Invite it to whichever
+      channels you want the daily AP digest in (typically a
+      finance, ops, or AP channel), and to any channel where
+      teammates should be able to @mention it for ad-hoc invoice
+      questions.
+    ui:
+      headline: "Give AP Tracking a Slack bot."
+      blurb: >-
+        The agent posts the daily digest to every channel you
+        invite it to. Invite it to one focused AP channel, or
+        several — whatever matches how your team works.
+      done_note: "Bot ready — invite it to a channel"
+
+  - type: cron
+    cron: "0 8 * * 1-5"
+    timezone: America/Los_Angeles
+    description: "Fires the daily AP digest at 8am Pacific, Monday through Friday."
