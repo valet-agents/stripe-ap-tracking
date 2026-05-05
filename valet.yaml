@@ -6,6 +6,9 @@ description: >-
   get called out. @mention it any time for ad-hoc invoice questions.
 category: procurement
 
+example:
+  prompt: "Who's behind on payment this week?"
+
 story:
   hero: "Stop chasing 'is this paid?' across email."
   subheadline: >-
